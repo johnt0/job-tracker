@@ -27,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -136,6 +135,11 @@ REST_FRAMEWORK = {
 }
 
 # cookie hardening
+
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
+
+# reverse proxy setup requires explicit trust to origin
+
+CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]

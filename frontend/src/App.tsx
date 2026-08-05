@@ -23,7 +23,7 @@ function App() {
 
   useEffect(() => {
     async function checkSession() {
-      const res = await apiFetch("/api/auth/session");
+      const res = await apiFetch("/api/auth/session/");
 
       if (res.ok) {
         const data = await res.json();
@@ -42,8 +42,8 @@ function App() {
 
     async function load() {
       const [appsRes, optionsRes] = await Promise.all([
-        fetch("http://localhost:8000/applications/"),
-        fetch("http://localhost:8000/applications/", { method: "OPTIONS" }),
+        apiFetch("/api/applications/"),
+        apiFetch("/api/applications/", { method: "OPTIONS" }),
       ]);
 
       if (appsRes.status === 401 || optionsRes.status === 401) {
@@ -64,10 +64,9 @@ function App() {
   async function handleDelete() {
     if (!deletingApp) return;
 
-    const res = await fetch(
-      `http://localhost:8000/applications/${deletingApp.id}/`,
-      { method: "DELETE" },
-    );
+    const res = await apiFetch(`/api/applications/${deletingApp.id}/`, {
+      method: "DELETE",
+    });
 
     if (res.status === 401) {
       setUser(null);
@@ -91,7 +90,7 @@ function App() {
     );
 
     try {
-      const res = await fetch(`http://localhost:8000/applications/${app.id}/`, {
+      const res = await apiFetch(`/api/applications/${app.id}/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ state: newState }),

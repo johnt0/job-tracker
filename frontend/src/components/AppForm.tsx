@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import type { ChangeEvent, SubmitEvent, SyntheticEvent, MouseEvent } from "react";
+import type {
+  ChangeEvent,
+  SubmitEvent,
+  SyntheticEvent,
+  MouseEvent,
+} from "react";
 import type { Application, Schema } from "../types";
+import { apiFetch } from "../api";
 
 const typeMap: Record<string, string> = {
   string: "text",
@@ -70,12 +76,11 @@ function AppForm({
 
     const url =
       isEdit && application
-        ? `http://localhost:8000/applications/${application.id}/`
-        : "http://localhost:8000/applications/";
+        ? `/api/applications/${application.id}/`
+        : "/api/applications/";
 
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method: isEdit ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(
         isEdit ? formData : { ...formData, state: "APPLIED" },
       ),

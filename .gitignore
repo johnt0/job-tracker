@@ -19,3 +19,6 @@ node_modules/
 .impeccable
 AUTH_PLAN.md
 AWS_DEPLOYMENT_PLAN.md
+
+# test db
+db.sqlite3
