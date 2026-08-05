@@ -1,0 +1,295 @@
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400..600;1,400..600&family=Crimson+Pro:ital,wght@0,400;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Newsreader", ui-serif, Georgia, serif;
+  --font-body: "Crimson Pro", ui-serif, Georgia, serif;
+  --font-outlier: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-paper: #f1e1d7;
+
+  --color-ink-soft: oklch(46% 0.012 50);
+  --color-ink: oklch(18% 0.014 50);
+  --color-rule: oklch(82% 0.016 50);
+  --color-rule-strong: oklch(70% 0.02 50);
+  --color-line-soft: oklch(88% 0.012 50);
+
+  --shadow-modal: 0 20px 40px -12px oklch(18% 0.014 50 / 0.25);
+
+  --ease-emphasized: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+:root {
+  --color-applied: oklch(40% 0.09 255);
+  --color-interviewing: oklch(39% 0.09 75);
+  --color-offer: oklch(36% 0.09 165);
+  --color-rejected: oklch(38% 0.09 345);
+
+  --color-applied-bg: #b1c4da;
+  --color-interviewing-bg: #eddfcd;
+  --color-offer-bg: #d1e8dd;
+  --color-rejected-bg: #f0dae5;
+}
+
+@layer base {
+  /* 1. Use a more-intuitive box-sizing model */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  /* 2. Remove default margin */
+  *:not(dialog) {
+    margin: 0;
+  }
+
+  /* 3. Enable keyword animations */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      interpolate-size: allow-keywords;
+    }
+  }
+
+  body {
+    /* 4. Increase line-height */
+    line-height: 1.5;
+    /* 5. Improve text rendering */
+    -webkit-font-smoothing: antialiased;
+
+    background-color: var(--color-paper);
+  }
+
+  /* 6. Improve media defaults */
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  /* 7. Inherit fonts for form controls */
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  /* 8. Avoid text overflows */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    overflow-wrap: break-word;
+  }
+
+  /* 9. Improve line wrapping */
+  p {
+    text-wrap: pretty;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+
+  /*
+    10. Create a root stacking context
+  */
+  #root,
+  #__next {
+    isolation: isolate;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply rounded-lg border border-rule-strong px-4 py-2 text-sm font-medium font-body cursor-pointer
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply rounded-lg border border-ink bg-ink px-4 py-2 text-sm font-medium font-body text-paper cursor-pointer
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-danger {
+    background-color: var(--color-rejected);
+    border-color: var(--color-rejected);
+  }
+
+  .press {
+    --press-hover: oklch(0% 0 0 / 0.05);
+    --press-active: oklch(0% 0 0 / 0.09);
+    transition:
+      scale 180ms var(--ease-emphasized),
+      background-color 180ms ease,
+      border-color 180ms ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .press:hover {
+      background-color: var(--press-hover);
+    }
+  }
+  .press:active {
+    scale: 0.97;
+    background-color: var(--press-active);
+    transition-duration: 90ms;
+  }
+  .press:focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+
+  .btn-primary.press {
+    --press-hover: oklch(26% 0.014 50);
+    --press-active: oklch(22% 0.014 50);
+  }
+  .btn-danger.press {
+    --press-hover: oklch(44% 0.1 345);
+    --press-active: oklch(33% 0.09 345);
+  }
+
+  .status-tile {
+    transition:
+      opacity 200ms ease,
+      border-color 200ms ease,
+      background-color 180ms ease,
+      scale 180ms var(--ease-emphasized);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .status-tile:hover {
+      background-color: oklch(0% 0 0 / 0.03);
+    }
+  }
+  .status-tile:active {
+    scale: 0.985;
+    background-color: oklch(0% 0 0 / 0.06);
+    transition-duration: 90ms;
+  }
+  .status-tile:focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+
+  .state-menu {
+    position: fixed;
+    margin: 0;
+    padding: 0.25rem;
+    border: 1px solid var(--color-rule);
+    border-radius: 0.75rem;
+    background: var(--color-paper);
+    box-shadow: var(--shadow-modal);
+    transform-origin: var(--menu-origin, top left);
+
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+    transition:
+      opacity 120ms ease-out,
+      transform 120ms ease-out,
+      display 120ms allow-discrete,
+      overlay 120ms allow-discrete;
+  }
+
+  .state-menu:popover-open {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    transition-duration: 180ms;
+    transition-timing-function: var(--ease-emphasized);
+
+    @starting-style {
+      opacity: 0;
+      transform: scale(0.96) translateY(-4px);
+    }
+  }
+
+  .state-menu [role="option"] {
+    transition: background-color 120ms ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .state-menu [role="option"]:hover {
+      background-color: oklch(0% 0 0 / 0.05);
+    }
+  }
+
+  .app-dialog {
+    margin: auto;
+    opacity: 0;
+    transform: scale(0.97) translateY(8px);
+    transition:
+      opacity 180ms ease-out,
+      transform 180ms ease-out,
+      display 180ms allow-discrete,
+      overlay 180ms allow-discrete;
+  }
+
+  .app-dialog[open] {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    transition-duration: 240ms;
+    transition-timing-function: var(--ease-emphasized);
+  }
+
+  .app-dialog[open].closing {
+    opacity: 0;
+    transform: scale(0.97) translateY(8px);
+  }
+
+  @starting-style {
+    .app-dialog[open] {
+      opacity: 0;
+      transform: scale(0.97) translateY(8px);
+    }
+  }
+
+  .app-dialog::backdrop {
+    background: oklch(0% 0 0 / 0);
+    transition:
+      background 200ms ease-out,
+      display 200ms allow-discrete,
+      overlay 200ms allow-discrete;
+  }
+
+  .app-dialog[open]::backdrop {
+    background: oklch(0% 0 0 / 0.5);
+  }
+
+  .app-dialog[open].closing::backdrop {
+    background: oklch(0% 0 0 / 0);
+  }
+
+  @starting-style {
+    .app-dialog[open]::backdrop {
+      background: oklch(0% 0 0 / 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .state-pill-trigger,
+    .state-menu,
+    .state-menu:popover-open,
+    .app-dialog,
+    .app-dialog[open] {
+      transform: none;
+      transition-duration: 100ms;
+    }
+
+    .press,
+    .status-tile {
+      transition-property: background-color, border-color, opacity;
+    }
+
+    .press:active,
+    .status-tile:active {
+      scale: none;
+    }
+  }
+}

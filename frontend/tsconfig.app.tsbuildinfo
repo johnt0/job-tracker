@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/Login.tsx","./src/api.ts","./src/main.tsx","./src/types.ts","./src/components/AppForm.tsx","./src/components/ConfirmDialog.tsx","./src/components/Header.tsx","./src/components/StatePill.tsx","./src/components/StatusTiles.tsx","./src/components/Table.tsx","./src/components/Toolbar.tsx"],"errors":true,"version":"5.9.3"}
