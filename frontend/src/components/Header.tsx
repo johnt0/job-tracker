@@ -1,5 +1,7 @@
 interface HeaderProps {
+  username: string;
   onAddClick: () => void;
+  onLogout: () => void;
 }
 
 function Header({ onAddClick }: HeaderProps) {
