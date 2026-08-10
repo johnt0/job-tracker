@@ -22,3 +22,10 @@ AWS_DEPLOYMENT_PLAN.md
 
 # test db
 db.sqlite3
+
+# secrets
+.env
+staticfiles/
+*.log
+.env.*
+!.env.example

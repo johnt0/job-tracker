@@ -8,4 +8,8 @@ dependencies = [
     "django>=6.0.7",
     "django-stubs>=6.0.7",
     "djangorestframework>=3.17.1",
+    "django-environ",
+    "psycopg[binary]",
+    "gunicorn",
+    "whitenoise",
 ]
