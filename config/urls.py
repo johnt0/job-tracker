@@ -18,9 +18,10 @@ from django.contrib import admin
 from django.urls import include, path
 
 from applications.views import healthz
+from config.settings import ADMIN_URL
 
 urlpatterns = [
-    path('api/admin/', admin.site.urls),
+    path(f'api/{ADMIN_URL}/', admin.site.urls),
     path('api/applications/', include('applications.urls')),
     path('api/auth/', include('applications.auth_urls')),
     path('api/healthz/', healthz)

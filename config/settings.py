@@ -36,6 +36,8 @@ DEBUG = env.bool('DJANGO_DEBUG', default=False)
 
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=[])
 
+ADMIN_URL = env('DJANGO_ADMIN_URL', default='admin')
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -145,6 +147,14 @@ REST_FRAMEWORK = {
   "DEFAULT_THROTTLE_RATES": {
     'login': '5/min',
   },
+  "DEFAULT_RENDERER_CLASSES": (
+    ["rest_framework.renderers.JSONRenderer"]
+    if not DEBUG
+    else [
+      "rest_framework.renderers.JSONRenderer",
+      "rest_framework.renderers.BrowsableAPIRenderer",
+    ]
+  ),
 }
 
 # cookie hardening
