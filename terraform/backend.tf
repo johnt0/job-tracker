@@ -77,11 +77,18 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
+resource "aws_key_pair" "backend" {
+  key_name   = "backend-key"
+  public_key = file("~/.ssh/id_ed25519.pub")
+}
+
 resource "aws_instance" "backend" {
   ami = data.aws_ami.amazon_linux.id
   instance_type = "t3.micro"
   vpc_security_group_ids = [aws_security_group.backend.id]
   iam_instance_profile = aws_iam_instance_profile.backend.name
+  availability_zone = aws_ebs_volume.backend_data.availability_zone
+  key_name = aws_key_pair.backend.key_name
 
   user_data_replace_on_change = true
 
@@ -96,7 +103,7 @@ resource "aws_instance" "backend" {
 }
 
 resource "aws_ebs_volume" "backend_data" {
-  availability_zone = aws_instance.backend.availability_zone
+  availability_zone = "us-east-1a"
   size              = 5
   type              = "gp3"
 
@@ -113,4 +120,8 @@ resource "aws_volume_attachment" "backend_data" {
   device_name = "/dev/xvdf"
   volume_id   = aws_ebs_volume.backend_data.id
   instance_id = aws_instance.backend.id
+}
+
+output "backend_public_ip" {
+  value = aws_instance.backend.public_ip
 }
