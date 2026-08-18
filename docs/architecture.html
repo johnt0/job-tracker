@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Tracker Architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #eb6c36;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      color: var(--color-muted);
+      margin-bottom: 1.5rem;
+      max-width: 640px;
+    }
+
+    svg { width: 100%; min-width: 900px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Job Tracker</p>
+    <h1>Session-authed Django API behind a React SPA</h1>
+    <p class="subtitle">Single-container deployment — one Postgres, one Gunicorn process, no queue, no CORS.</p>
+
+    <svg viewBox="0 0 1360 640" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ===== ZONES (bg -> zones -> arrows -> nodes) ===== -->
+      <rect x="24" y="168" width="200" height="136" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <rect x="36" y="172" width="56" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="64" y="181" fill="rgba(45,49,66,0.40)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">CLIENT</text>
+
+      <rect x="280" y="104" width="744" height="416" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <rect x="292" y="108" width="92" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="338" y="117" fill="rgba(45,49,66,0.40)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">APPLICATION</text>
+
+      <rect x="1112" y="168" width="200" height="280" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <rect x="1124" y="172" width="92" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="1170" y="181" fill="rgba(45,49,66,0.40)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">PERSISTENCE</text>
+
+      <!-- ===== ARROWS ===== -->
+
+      <!-- SPA -> Gunicorn (http, link-blue) -->
+      <line x1="200" y1="236" x2="304" y2="236" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <rect x="228" y="216" width="48" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="252" y="225" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">/API/*</text>
+
+      <!-- Gunicorn -> Middleware -->
+      <line x1="456" y1="236" x2="560" y2="236" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="484" y="216" width="48" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="508" y="225" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">WSGI</text>
+
+      <!-- Middleware -> route handlers (fan on Middleware right edge, r=8 elbows) -->
+      <path d="M 720,200 H 784 Q 792,200 792,192 V 176 Q 792,168 800,168 H 816" fill="none" stroke="#2d3142" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <path d="M 720,224 H 768 Q 776,224 776,232 V 256 Q 776,264 784,264 H 816" fill="none" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <path d="M 720,248 H 752 Q 760,248 760,256 V 352 Q 760,360 768,360 H 816" fill="none" stroke="rgba(45,49,66,0.35)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <path d="M 720,272 H 736 Q 744,272 744,280 V 448 Q 744,456 752,456 H 816" fill="none" stroke="rgba(45,49,66,0.35)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <!-- route handlers -> ORM / Postgres (fan on left edge x=1128) -->
+      <path d="M 1000,168 H 1064 Q 1072,168 1072,176 V 210 Q 1072,218 1080,218 H 1128" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="1008" y="148" width="48" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="1032" y="157" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">SESSION</text>
+
+      <path d="M 1000,264 H 1016 Q 1024,264 1024,256 V 244 Q 1024,236 1032,236 H 1128" fill="none" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <rect x="984" y="244" width="76" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="1022" y="253" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">OWNER=USER</text>
+
+      <path d="M 1000,360 H 1040 Q 1048,360 1048,352 V 262 Q 1048,254 1056,254 H 1128" fill="none" stroke="rgba(45,49,66,0.35)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <path d="M 1000,456 H 1088 Q 1096,456 1096,448 V 384 Q 1096,376 1104,376 H 1128" fill="none" stroke="rgba(45,49,66,0.35)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <rect x="1020" y="436" width="48" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="1044" y="445" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">SELECT 1</text>
+
+      <!-- ORM -> Postgres (vertical, accent) -->
+      <line x1="1212" y1="272" x2="1212" y2="336" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <rect x="1220" y="298" width="32" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="1236" y="307" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">SQL</text>
+
+      <!-- ===== NODES ===== -->
+
+      <!-- 1. React SPA (input/user) -->
+      <rect x="48" y="200" width="152" height="72" rx="6" fill="#f5f5f5"/>
+      <rect x="48" y="200" width="152" height="72" rx="6" fill="rgba(79,93,117,0.10)" stroke="rgba(79,93,117,0.50)" stroke-width="1"/>
+      <rect x="56" y="206" width="24" height="12" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="68" y="215" fill="rgba(79,93,117,0.90)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">WEB</text>
+      <text x="124" y="240" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">React SPA</text>
+      <text x="124" y="256" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">react · vite · tailwind</text>
+
+      <!-- 2. Gunicorn (external / process boundary) -->
+      <rect x="304" y="200" width="152" height="72" rx="6" fill="#f5f5f5"/>
+      <rect x="304" y="200" width="152" height="72" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+      <rect x="312" y="206" width="32" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="328" y="215" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">WSGI</text>
+      <text x="380" y="240" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Gunicorn</text>
+      <text x="380" y="256" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">gthread · 2w×4t · :8000</text>
+
+      <!-- 3. Middleware stack (backend) -->
+      <rect x="560" y="176" width="160" height="120" rx="6" fill="#f5f5f5"/>
+      <rect x="560" y="176" width="160" height="120" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="568" y="182" width="20" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="578" y="191" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">MW</text>
+      <text x="640" y="232" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Middleware</text>
+      <text x="640" y="252" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">security · whitenoise</text>
+      <text x="640" y="266" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">session · csrf</text>
+
+      <!-- 4. Auth Views -->
+      <rect x="816" y="136" width="184" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="816" y="136" width="184" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="824" y="142" width="28" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="838" y="151" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">AUTH</text>
+      <text x="908" y="172" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Auth Views</text>
+      <text x="908" y="188" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">/api/auth/*</text>
+
+      <!-- 5. ApplicationViewSet — FOCAL -->
+      <rect x="816" y="232" width="184" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="816" y="232" width="184" height="64" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <rect x="824" y="238" width="24" height="12" rx="2" fill="transparent" stroke="rgba(235,108,54,0.50)" stroke-width="0.8"/>
+      <text x="836" y="247" fill="#eb6c36" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">API</text>
+      <text x="908" y="268" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">ApplicationViewSet</text>
+      <text x="908" y="284" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">/api/applications/</text>
+
+      <!-- 6. Django Admin (optional / async style) -->
+      <rect x="816" y="328" width="184" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="816" y="328" width="184" height="64" rx="6" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+      <rect x="824" y="334" width="36" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="842" y="343" fill="rgba(45,49,66,0.70)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ADMIN</text>
+      <text x="908" y="364" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Django Admin</text>
+      <text x="908" y="380" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">/api/$ADMIN_URL/</text>
+
+      <!-- 7. healthz (optional / async style) -->
+      <rect x="816" y="424" width="184" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="816" y="424" width="184" height="64" rx="6" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+      <rect x="824" y="430" width="24" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="836" y="439" fill="rgba(45,49,66,0.70)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">OPS</text>
+      <text x="908" y="460" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Health Check</text>
+      <text x="908" y="476" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">/api/healthz/</text>
+
+      <!-- 8. Django ORM (backend) -->
+      <rect x="1128" y="200" width="168" height="72" rx="6" fill="#f5f5f5"/>
+      <rect x="1128" y="200" width="168" height="72" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="1136" y="206" width="24" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="1148" y="215" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ORM</text>
+      <text x="1212" y="240" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Django ORM</text>
+      <text x="1212" y="256" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Application · Session</text>
+
+      <!-- 9. PostgreSQL (store) -->
+      <rect x="1128" y="336" width="168" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="1128" y="336" width="168" height="80" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="1136" y="342" width="20" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="1146" y="351" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DB</text>
+      <text x="1212" y="378" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">PostgreSQL 17</text>
+      <text x="1212" y="394" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">db:5432 · pgdata</text>
+
+      <!-- ===== ANNOTATION CALLOUTS ===== -->
+      <text x="40" y="360" fill="#2d3142" font-size="14" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="start">no CORS anywhere — Vite proxies</text>
+      <text x="40" y="378" fill="#2d3142" font-size="14" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="start">/api in dev, same-origin in prod</text>
+      <path d="M 48 386 Q 88 330 124 276" fill="none" stroke="rgba(45,49,66,0.40)" stroke-width="1" stroke-dasharray="4,3"/>
+      <circle cx="124" cy="272" r="2" fill="#2d3142"/>
+
+      <text x="40" y="432" fill="#4f5d75" font-size="14" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="start">csrftoken readable by JS,</text>
+      <text x="40" y="450" fill="#4f5d75" font-size="14" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="start">sessionid stays HttpOnly</text>
+      <path d="M 48 458 Q 300 400 636 300" fill="none" stroke="rgba(45,49,66,0.30)" stroke-width="1" stroke-dasharray="4,3"/>
+      <circle cx="640" cy="296" r="2" fill="#4f5d75"/>
+
+      <!-- ===== LEGEND ===== -->
+      <line x1="30" y1="552" x2="1330" y2="552" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="30" y="572" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+
+      <rect x="150" y="564" width="12" height="12" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="168" y="574" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace">FOCAL · OWNER-SCOPED</text>
+
+      <rect x="380" y="564" width="12" height="12" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="398" y="574" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace">DJANGO · DRF</text>
+
+      <rect x="560" y="564" width="12" height="12" rx="2" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="578" y="574" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace">DATA STORE</text>
+
+      <rect x="740" y="564" width="12" height="12" rx="2" fill="rgba(79,93,117,0.10)" stroke="rgba(79,93,117,0.50)" stroke-width="1"/>
+      <text x="758" y="574" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace">CLIENT</text>
+
+      <rect x="900" y="564" width="12" height="12" rx="2" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="918" y="574" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace">ADMIN · OPS</text>
+
+      <line x1="1080" y1="570" x2="1100" y2="570" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <text x="1112" y="574" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace">HTTP</text>
+    </svg>
+  </div>
+</body>
+</html>
